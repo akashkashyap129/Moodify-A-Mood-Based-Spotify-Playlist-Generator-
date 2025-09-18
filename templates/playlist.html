@@ -3,55 +3,435 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moodify - {{ mood|capitalize }} Playlist</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Your {{ mood.title() }} Playlist - Moodify</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: #121212;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .mood-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-transform: capitalize;
+        }
+
+        .mood-emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .playlist-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1db954, #1ed760);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1ed760, #1db954);
+        }
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .track-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .track-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .track-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .track-card:hover::before {
+            left: 100%;
+        }
+
+        .track-info {
+            position: relative;
+            z-index: 2;
+        }
+
+        .track-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .track-artist {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .track-album {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+
+        .track-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .play-btn {
+            background: #1db954;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .play-btn:hover {
+            background: #1ed760;
+            transform: scale(1.1);
+        }
+
+        .spotify-btn {
+            background: #1db954;
+            border: none;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .spotify-btn:hover {
+            background: #1ed760;
+            transform: translateY(-1px);
+        }
+
+        .audio-preview {
+            width: 100%;
+            margin-top: 1rem;
+            border-radius: 10px;
+        }
+
+        .no-preview {
+            text-align: center;
+            opacity: 0.6;
+            font-style: italic;
+            margin-top: 1rem;
+        }
+
+        .mood-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .mood-indicator {
+            text-align: center;
+        }
+
+        .mood-indicator-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mood-title {
+                font-size: 1.5rem;
+            }
+            
+            .track-card {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen text-gray-100 p-4">
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-2xl text-center">
-        <h1 class="text-3xl font-bold mb-6 text-green-400">
-            {{ mood|capitalize }} Playlist
-        </h1>
-
-        <div class="flex justify-center mb-6 space-x-4">
-            <a href="{{ url_for('generate_playlist', mood=mood) }}" class="inline-block bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition-colors shadow-lg">
-                Refresh Songs ✨
-            </a>
-
-            <a href="{{ url_for('home') }}" class="inline-block bg-gray-600 text-white p-3 rounded-lg font-bold hover:bg-gray-700 transition-colors shadow-lg">
-                Go Back
-            </a>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">🎵 Moodify</h1>
+            
+            <div class="mood-indicators">
+                {% set mood_emojis = {
+                    'happy': '😊',
+                    'energetic': '⚡',
+                    'chill': '😌',
+                    'sad': '😢',
+                    'calm': '🧘'
+                } %}
+                <span class="mood-emoji">{{ mood_emojis.get(mood, '🎵') }}</span>
+            </div>
+            
+            <h2 class="mood-title">Your {{ mood.title() }} Playlist</h2>
+            
+            <div class="playlist-info">
+                <p>{{ tracks|length }} tracks curated based on your {{ mood }} mood</p>
+            </div>
         </div>
 
-        <div class="space-y-4 text-left">
+        <div class="controls">
+            <a href="/" class="btn">
+                🏠 New Mood
+            </a>
+            <a href="/generate_playlist?mood={{ mood }}" class="btn">
+                🔄 Refresh Playlist
+            </a>
+            <button onclick="playAllPreviews()" class="btn btn-primary">
+                ▶️ Preview All
+            </button>
+        </div>
+
+        <div class="playlist-grid">
             {% for track in tracks %}
-            <div class="bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between shadow-md">
-                <div class="mb-2 sm:mb-0 sm:mr-4">
-                    <h2 class="text-lg font-semibold">{{ track.name }}</h2>
-                    <p class="text-sm text-gray-400">{{ track.artist }} - {{ track.album }}</p>
-                </div>
-                <div class="flex items-center space-x-2">
+            <div class="track-card" onclick="openSpotify('{{ track.url }}')">
+                <div class="track-info">
+                    <div class="track-name">{{ track.name }}</div>
+                    <div class="track-artist">{{ track.artist }}</div>
+                    <div class="track-album">{{ track.album }}</div>
+                    
+                    <div class="track-controls">
+                        {% if track.preview_url %}
+                            <button class="play-btn" onclick="event.stopPropagation(); playPreview('{{ track.preview_url }}', this)">
+                                ▶️
+                            </button>
+                        {% else %}
+                            <div class="play-btn" style="opacity: 0.3; cursor: not-allowed;">
+                                🚫
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{{ track.url }}" target="_blank" class="spotify-btn" onclick="event.stopPropagation()">
+                            🎵 Open in Spotify
+                        </a>
+                    </div>
+                    
                     {% if track.preview_url %}
-                    <audio controls class="w-full sm:w-auto">
-                        <source src="{{ track.preview_url }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
+                        <audio class="audio-preview" controls preload="none">
+                            <source src="{{ track.preview_url }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    {% else %}
+                        <div class="no-preview">No preview available</div>
                     {% endif %}
-                    <a href="{{ track.url }}" target="_blank" rel="noopener noreferrer" class="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path d="M19.5 7.5a3 3 0 0 0-3-3h-7.5a3 3 0 0 0-3 3v8.25a3 3 0 0 0 3 3h7.5a3 3 0 0 0 3-3v-8.25Z" />
-                            <path fill-rule="evenodd" d="M3.75 19.5v-8.25a6 6 0 0 1 6-6h5.25a6 6 0 0 1 6 6v8.25a6 6 0 0 1-6 6h-5.25a6 6 0 0 1-6-6Z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        let currentAudio = null;
+
+        function openSpotify(url) {
+            window.open(url, '_blank');
+        }
+
+        function playPreview(url, button) {
+            // Stop current audio if playing
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                // Reset all play buttons
+                document.querySelectorAll('.play-btn').forEach(btn => {
+                    btn.textContent = '▶️';
+                });
+            }
+
+            // Create new audio element
+            currentAudio = new Audio(url);
+            button.textContent = '⏸️';
+
+            currentAudio.play().catch(error => {
+                console.error('Error playing audio:', error);
+                button.textContent = '❌';
+                setTimeout(() => {
+                    button.textContent = '▶️';
+                }, 2000);
+            });
+
+            currentAudio.onended = () => {
+                button.textContent = '▶️';
+                currentAudio = null;
+            };
+
+            currentAudio.onpause = () => {
+                button.textContent = '▶️';
+            };
+        }
+
+        function playAllPreviews() {
+            const audioElements = document.querySelectorAll('.audio-preview');
+            let currentIndex = 0;
+
+            function playNext() {
+                if (currentIndex < audioElements.length) {
+                    const audio = audioElements[currentIndex];
+                    if (audio.src) {
+                        audio.play().catch(() => {
+                            // If play fails, move to next
+                            currentIndex++;
+                            setTimeout(playNext, 500);
+                        });
+
+                        audio.onended = () => {
+                            currentIndex++;
+                            setTimeout(playNext, 1000); // 1 second gap between tracks
+                        };
+                    } else {
+                        currentIndex++;
+                        setTimeout(playNext, 500);
+                    }
+                }
+            }
+
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+
+            playNext();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (currentAudio) {
+                    if (currentAudio.paused) {
+                        currentAudio.play();
+                    } else {
+                        currentAudio.pause();
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

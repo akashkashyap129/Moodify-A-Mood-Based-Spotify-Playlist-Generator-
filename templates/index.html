@@ -1,34 +1,241 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moodify - Choose Your Mood</title>
-<script src="https://www.google.com/search?q=https://cdn.tailwindcss.com"></script>
-<style>
-body {
-font-family: 'Inter', sans-serif;
-background: #121212;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moodify - Mood-Based Spotify Playlists</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .mood-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .mood-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .mood-option {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .mood-option input[type="radio"] {
+            display: none;
+        }
+
+        .mood-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 1.5rem 1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .mood-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .mood-option input[type="radio"]:checked + .mood-card {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .mood-emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .description {
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .mood-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .mood-card {
+                padding: 1rem 0.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen text-gray-100">
-<div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-sm text-center">
-<h1 class="text-3xl font-bold mb-6 text-green-400">What's Your Mood Today?</h1>
-<form action="/generate_playlist" method="post" class="space-y-4">
-<label for="mood" class="sr-only">Choose a mood</label>
-<select name="mood" id="mood" class="w-full p-3 rounded-lg bg-gray-700 text-gray-100 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors cursor-pointer">
-<option value="happy">Happy 😊</option>
-<option value="energetic">Energetic ⚡</option>
-<option value="chill">Chill 😎</option>
-<option value="sad">Sad 😔</option>
-<option value="calm">Calm 🧘</option>
-</select>
-<button type="submit" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 transition-colors shadow-lg">
-Generate Playlist
-</button>
-</form>
-</div>
+<body>
+    <a href="/logout" class="logout-btn">Logout</a>
+    
+    <div class="container">
+        <h1 class="logo">🎵 Moodify</h1>
+        <p class="subtitle">Discover music that matches your mood</p>
+        
+        <form action="/generate_playlist" method="post" class="mood-form">
+            <div class="mood-selector">
+                <label class="mood-option">
+                    <input type="radio" name="mood" value="happy" required>
+                    <div class="mood-card">
+                        <span class="mood-emoji">😊</span>
+                        Happy
+                    </div>
+                </label>
+                
+                <label class="mood-option">
+                    <input type="radio" name="mood" value="energetic" required>
+                    <div class="mood-card">
+                        <span class="mood-emoji">⚡</span>
+                        Energetic
+                    </div>
+                </label>
+                
+                <label class="mood-option">
+                    <input type="radio" name="mood" value="chill" required>
+                    <div class="mood-card">
+                        <span class="mood-emoji">😌</span>
+                        Chill
+                    </div>
+                </label>
+                
+                <label class="mood-option">
+                    <input type="radio" name="mood" value="sad" required>
+                    <div class="mood-card">
+                        <span class="mood-emoji">😢</span>
+                        Sad
+                    </div>
+                </label>
+                
+                <label class="mood-option">
+                    <input type="radio" name="mood" value="calm" required>
+                    <div class="mood-card">
+                        <span class="mood-emoji">🧘</span>
+                        Calm
+                    </div>
+                </label>
+            </div>
+            
+            <button type="submit" class="generate-btn">Generate Playlist</button>
+        </form>
+        
+        <p class="description">
+            Select your current mood and we'll curate a personalized playlist just for you using your Spotify listening history and preferences.
+        </p>
+    </div>
 </body>
 </html>
