@@ -71,8 +71,8 @@ def callback():
 @app.route('/generate_playlist', methods=['GET', 'POST'])
 def generate_playlist():
     """
-    This route now handles both POST requests from the form and GET requests
-    from the refresh button.
+    This route handles both POST requests from the form and GET requests
+    from the refresh button (AJAX).
     """
     token_info = cache_handler.get_cached_token()
     
@@ -216,7 +216,6 @@ def generate_playlist():
                 'name': track['name'],
                 'artist': track['artists'][0]['name'],
                 'album': track['album']['name'],
-                'preview_url': track['preview_url'],
                 'url': track['external_urls']['spotify'],
                 'mood': user_mood,
                 'duration': f"{duration_min}:{duration_sec:02d}",
@@ -230,8 +229,14 @@ def generate_playlist():
         
         # Sort tracks by popularity for better ordering
         tracks.sort(key=lambda x: x['popularity'], reverse=True)
-            
-        return render_template('playlist.html', mood=user_mood, tracks=tracks)
+        
+        # Check if this is an AJAX request (refresh)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Return just the HTML template for AJAX requests
+            return render_template('playlist.html', mood=user_mood, tracks=tracks)
+        else:
+            # Regular request, return full page
+            return render_template('playlist.html', mood=user_mood, tracks=tracks)
 
     except Exception as e:
         print(f"Main approach failed: {e}")
@@ -266,7 +271,6 @@ def generate_playlist():
                     'name': track['name'],
                     'artist': track['artists'][0]['name'],
                     'album': track['album']['name'],
-                    'preview_url': track['preview_url'],
                     'url': track['external_urls']['spotify'],
                     'mood': user_mood,
                     'duration': f"{duration_min}:{duration_sec:02d}",
@@ -275,8 +279,12 @@ def generate_playlist():
                     'album_image': track['album']['images'][0]['url'] if track['album']['images'] else None
                 }
                 tracks.append(track_data)
-                
-            return render_template('playlist.html', mood=user_mood, tracks=tracks)
+            
+            # Check if this is an AJAX request (refresh)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return render_template('playlist.html', mood=user_mood, tracks=tracks)
+            else:
+                return render_template('playlist.html', mood=user_mood, tracks=tracks)
             
         except Exception as search_error:
             print(f"Search fallback failed: {search_error}")

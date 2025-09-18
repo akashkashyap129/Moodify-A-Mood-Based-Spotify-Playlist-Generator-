@@ -106,6 +106,27 @@
             background: linear-gradient(135deg, #1ed760, #1db954);
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .playlist-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -174,29 +195,8 @@
 
         .track-controls {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
-            gap: 1rem;
-        }
-
-        .play-btn {
-            background: #1db954;
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-
-        .play-btn:hover {
-            background: #1ed760;
-            transform: scale(1.1);
         }
 
         .spotify-btn {
@@ -217,36 +217,6 @@
         .spotify-btn:hover {
             background: #1ed760;
             transform: translateY(-1px);
-        }
-
-        .audio-preview {
-            width: 100%;
-            margin-top: 1rem;
-            border-radius: 10px;
-        }
-
-        .no-preview {
-            text-align: center;
-            opacity: 0.6;
-            font-style: italic;
-            margin-top: 1rem;
-        }
-
-        .mood-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .mood-indicator {
-            text-align: center;
-        }
-
-        .mood-indicator-emoji {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            display: block;
         }
 
         @media (max-width: 768px) {
@@ -292,7 +262,7 @@
             <h2 class="mood-title">Your {{ mood.title() }} Playlist</h2>
             
             <div class="playlist-info">
-                <p>{{ tracks|length }} tracks curated based on your {{ mood }} mood</p>
+                <p id="track-count">{{ tracks|length }} tracks curated based on your {{ mood }} mood</p>
             </div>
         </div>
 
@@ -300,15 +270,13 @@
             <a href="/" class="btn">
                 ⌫ New Mood
             </a>
-            <a href="/generate_playlist?mood={{ mood }}" class="btn">
-                🔄 Refresh Playlist
-            </a>
-            <button onclick="playAllPreviews()" class="btn btn-primary">
-                ▶️ Preview All
+            <button id="refresh-btn" onclick="refreshPlaylist()" class="btn btn-primary">
+                <span id="refresh-text">🔄 Refresh Songs</span>
+                <div id="refresh-spinner" class="loading-spinner"></div>
             </button>
         </div>
 
-        <div class="playlist-grid">
+        <div id="playlist-grid" class="playlist-grid">
             {% for track in tracks %}
             <div class="track-card" onclick="openSpotify('{{ track.url }}')">
                 <div class="track-info">
@@ -317,29 +285,10 @@
                     <div class="track-album">{{ track.album }}</div>
                     
                     <div class="track-controls">
-                        {% if track.preview_url %}
-                            <button class="play-btn" onclick="event.stopPropagation(); playPreview('{{ track.preview_url }}', this)">
-                                ▶️
-                            </button>
-                        {% else %}
-                            <div class="play-btn" style="opacity: 0.3; cursor: not-allowed;">
-                                ▶️
-                            </div>
-                        {% endif %}
-                        
                         <a href="{{ track.url }}" target="_blank" class="spotify-btn" onclick="event.stopPropagation()">
                             🎵 Open in Spotify
                         </a>
                     </div>
-                    
-                    {% if track.preview_url %}
-                        <audio class="audio-preview" controls preload="none">
-                            <source src="{{ track.preview_url }}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                    {% else %}
-                        <div class="no-preview">No preview available</div>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -347,91 +296,75 @@
     </div>
 
     <script>
-        let currentAudio = null;
+        const currentMood = "{{ mood }}";
 
         function openSpotify(url) {
             window.open(url, '_blank');
         }
 
-        function playPreview(url, button) {
-            // Stop current audio if playing
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                // Reset all play buttons
-                document.querySelectorAll('.play-btn').forEach(btn => {
-                    btn.textContent = '▶️';
-                });
-            }
+        function refreshPlaylist() {
+            const refreshBtn = document.getElementById('refresh-btn');
+            const refreshText = document.getElementById('refresh-text');
+            const refreshSpinner = document.getElementById('refresh-spinner');
+            const playlistGrid = document.getElementById('playlist-grid');
+            const trackCount = document.getElementById('track-count');
 
-            // Create new audio element
-            currentAudio = new Audio(url);
-            button.textContent = '⏸️';
+            // Disable button and show loading state
+            refreshBtn.disabled = true;
+            refreshText.style.display = 'none';
+            refreshSpinner.style.display = 'inline-block';
 
-            currentAudio.play().catch(error => {
-                console.error('Error playing audio:', error);
-                button.textContent = '❌';
-                setTimeout(() => {
-                    button.textContent = '▶️';
-                }, 2000);
+            // Make AJAX request to get new playlist
+            fetch(`/generate_playlist?mood=${currentMood}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Parse the response to extract just the track cards
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newGrid = doc.getElementById('playlist-grid');
+                const newTrackCount = doc.getElementById('track-count');
+                
+                if (newGrid && newTrackCount) {
+                    // Update the playlist grid with new tracks
+                    playlistGrid.innerHTML = newGrid.innerHTML;
+                    trackCount.textContent = newTrackCount.textContent;
+                    
+                    // Add fade-in animation to new tracks
+                    const newCards = playlistGrid.querySelectorAll('.track-card');
+                    newCards.forEach((card, index) => {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            card.style.transition = 'all 0.5s ease';
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, index * 100);
+                    });
+                } else {
+                    throw new Error('Could not parse new tracks');
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing playlist:', error);
+                alert('Failed to refresh playlist. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable button and hide loading state
+                refreshBtn.disabled = false;
+                refreshText.style.display = 'inline';
+                refreshSpinner.style.display = 'none';
             });
-
-            currentAudio.onended = () => {
-                button.textContent = '▶️';
-                currentAudio = null;
-            };
-
-            currentAudio.onpause = () => {
-                button.textContent = '▶️';
-            };
         }
-
-        function playAllPreviews() {
-            const audioElements = document.querySelectorAll('.audio-preview');
-            let currentIndex = 0;
-
-            function playNext() {
-                if (currentIndex < audioElements.length) {
-                    const audio = audioElements[currentIndex];
-                    if (audio.src) {
-                        audio.play().catch(() => {
-                            // If play fails, move to next
-                            currentIndex++;
-                            setTimeout(playNext, 500);
-                        });
-
-                        audio.onended = () => {
-                            currentIndex++;
-                            setTimeout(playNext, 1000); // 1 second gap between tracks
-                        };
-                    } else {
-                        currentIndex++;
-                        setTimeout(playNext, 500);
-                    }
-                }
-            }
-
-            // Stop any currently playing audio
-            if (currentAudio) {
-                currentAudio.pause();
-            }
-
-            playNext();
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.key === ' ') {
-                e.preventDefault();
-                if (currentAudio) {
-                    if (currentAudio.paused) {
-                        currentAudio.play();
-                    } else {
-                        currentAudio.pause();
-                    }
-                }
-            }
-        });
     </script>
 </body>
 </html>
