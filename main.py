@@ -84,77 +84,61 @@ def generate_playlist():
     elif request.method == 'GET':
         user_mood = request.args.get('mood')
 
-    # Using ONLY valid Spotify genre seeds from the official list
-    mood_mappings = {
-        'happy': {
-            'seed_genres': ['pop', 'dance'],
-            'target_valence': 0.9,
-            'target_danceability': 0.8,
-            'target_energy': 0.7
-        },
-        'energetic': {
-            'seed_genres': ['rock', 'electronic'],
-            'target_valence': 0.8,
-            'target_energy': 0.9,
-            'target_danceability': 0.7
-        },
-        'chill': {
-            'seed_genres': ['chill', 'acoustic'],
-            'target_valence': 0.6,
-            'target_acousticness': 0.7,
-            'target_energy': 0.3
-        },
-        'sad': {
-            'seed_genres': ['indie', 'blues'],
-            'target_valence': 0.2,
-            'target_energy': 0.3,
-            'target_acousticness': 0.5
-        },
-        'calm': {
-            'seed_genres': ['ambient', 'jazz'],
-            'target_valence': 0.5,
-            'target_energy': 0.2,
-            'min_tempo': 60,
-            'max_tempo': 100
-        },
-    }
-
-    if user_mood not in mood_mappings:
+    if user_mood not in ['happy', 'energetic', 'chill', 'sad', 'calm']:
         return f"Sorry, '{user_mood}' is not a recognized mood."
     
-    # Make a deep copy to avoid modifying the original
-    import copy
-    audio_features = copy.deepcopy(mood_mappings[user_mood])
-    
     try:
-        # Extract and validate the seed genres
-        seed_genres_list = audio_features.pop('seed_genres')
+        # First, let's try to get user's top tracks as seed tracks instead of genres
+        print("Trying to get user's top tracks as seed...")
+        top_tracks = sp.current_user_top_tracks(limit=5, time_range='medium_term')
         
-        print(f"Original mood mapping: {mood_mappings[user_mood]}")  # Debug print
-        print(f"Seed genres extracted: {seed_genres_list}")  # Debug print
-        print(f"Type of seed_genres_list: {type(seed_genres_list)}")  # Debug print
+        if top_tracks and len(top_tracks['items']) > 0:
+            # Use top tracks as seeds instead of genres
+            seed_track_ids = [track['id'] for track in top_tracks['items'][:2]]  # Use first 2 tracks
+            
+            print(f"Using seed tracks: {seed_track_ids}")
+            
+            # Define mood-based audio features
+            mood_features = {
+                'happy': {'target_valence': 0.9, 'target_energy': 0.7, 'target_danceability': 0.8},
+                'energetic': {'target_valence': 0.8, 'target_energy': 0.9, 'target_danceability': 0.7},
+                'chill': {'target_valence': 0.5, 'target_energy': 0.3, 'target_acousticness': 0.7},
+                'sad': {'target_valence': 0.2, 'target_energy': 0.3, 'target_acousticness': 0.5},
+                'calm': {'target_valence': 0.4, 'target_energy': 0.2, 'min_tempo': 60, 'max_tempo': 100}
+            }
+            
+            features = mood_features[user_mood]
+            
+            # Make recommendation call with seed tracks instead of genres
+            recommendations = sp.recommendations(
+                seed_tracks=seed_track_ids,
+                limit=20,
+                **features
+            )
+            
+        else:
+            # Fallback: Try with popular tracks from search
+            print("No top tracks found, trying search-based approach...")
+            
+            # Search for popular tracks by mood
+            search_queries = {
+                'happy': 'genre:pop happy upbeat',
+                'energetic': 'genre:rock energetic workout',
+                'chill': 'genre:indie chill relax',
+                'sad': 'genre:indie sad melancholy',
+                'calm': 'genre:ambient calm peaceful'
+            }
+            
+            search_results = sp.search(
+                q=search_queries[user_mood],
+                type='track',
+                limit=20,
+                market='US'
+            )
+            
+            recommendations = {'tracks': search_results['tracks']['items']}
         
-        # Ensure we have a proper list
-        if not isinstance(seed_genres_list, list):
-            print(f"ERROR: seed_genres is not a list! It's: {type(seed_genres_list)}")
-            return f"Internal error: seed_genres should be a list, got {type(seed_genres_list)}"
-        
-        # Join the genres properly
-        seed_genres_str = ','.join(seed_genres_list)
-        
-        print(f"Final seed_genres string: '{seed_genres_str}'")  # Debug print
-        print(f"Remaining audio features: {audio_features}")  # Debug print
-        print(f"Audio features: {audio_features}")  # Debug print
-        
-        # Make the API call with proper parameter structure
-        recommendations = sp.recommendations(
-            limit=20,
-            market='US',
-            seed_genres=seed_genres_str,
-            **audio_features
-        )
-        
-        print(f"API call successful! Got {len(recommendations['tracks'])} tracks")  # Debug print
+        print(f"Got {len(recommendations['tracks'])} tracks")
         
         tracks = []
         for track in recommendations['tracks']:
@@ -170,17 +154,42 @@ def generate_playlist():
         return render_template('playlist.html', mood=user_mood, tracks=tracks)
 
     except Exception as e:
-        print(f"Full error details: {e}")  # Debug print
-        print(f"Error type: {type(e)}")  # Debug print
+        print(f"Main approach failed: {e}")
         
-        # Let's try to get available genres for debugging
+        # Final fallback: Use basic search
         try:
-            available_genres = sp.recommendation_genre_seeds()
-            print(f"Available genres: {available_genres}")
-        except Exception as genre_error:
-            print(f"Could not fetch available genres: {genre_error}")
-        
-        return f"An error occurred: {e}"
+            print("Trying basic search fallback...")
+            
+            mood_search_terms = {
+                'happy': 'happy upbeat pop',
+                'energetic': 'energetic rock workout',
+                'chill': 'chill indie acoustic',
+                'sad': 'sad indie emotional',
+                'calm': 'calm ambient peaceful'
+            }
+            
+            search_results = sp.search(
+                q=mood_search_terms[user_mood],
+                type='track',
+                limit=20
+            )
+            
+            tracks = []
+            for track in search_results['tracks']['items']:
+                tracks.append({
+                    'name': track['name'],
+                    'artist': track['artists'][0]['name'],
+                    'album': track['album']['name'],
+                    'preview_url': track['preview_url'],
+                    'url': track['external_urls']['spotify'],
+                    'mood': user_mood
+                })
+                
+            return render_template('playlist.html', mood=user_mood, tracks=tracks)
+            
+        except Exception as search_error:
+            print(f"Search fallback failed: {search_error}")
+            return f"All methods failed. Main error: {e}<br>Search error: {search_error}"
 
 
 @app.route('/available-genres')
