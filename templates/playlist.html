@@ -1,54 +1,57 @@
-
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moodify - {{ mood|capitalize }} Playlist</title>
-<script src="https://www.google.com/search?q=https://cdn.tailwindcss.com"></script>
-<style>
-body {
-font-family: 'Inter', sans-serif;
-background: #121212;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moodify - {{ mood|capitalize }} Playlist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #121212;
+        }
+    </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen text-gray-100 p-4">
-<div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-2xl text-center">
-<h1 class="text-3xl font-bold mb-6 text-green-400">
-{{ mood|capitalize }} Playlist
-</h1>
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-2xl text-center">
+        <h1 class="text-3xl font-bold mb-6 text-green-400">
+            {{ mood|capitalize }} Playlist
+        </h1>
 
-    <div class="space-y-4 text-left">
-        {% for track in tracks %}
-        <div class="bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between shadow-md">
-            <div class="mb-2 sm:mb-0 sm:mr-4">
-                <h2 class="text-lg font-semibold">{{ track.name }}</h2>
-                <p class="text-sm text-gray-400">{{ track.artist }} - {{ track.album }}</p>
-            </div>
-            <div class="flex items-center space-x-2">
-                {% if track.preview_url %}
-                <audio controls class="w-full sm:w-auto">
-                    <source src="{{ track.preview_url }}" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-                {% endif %}
-                <a href="{{ track.url }}" target="_blank" rel="noopener noreferrer" class="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                        <path d="M19.5 7.5a3 3 0 0 0-3-3h-7.5a3 3 0 0 0-3 3v8.25a3 3 0 0 0 3 3h7.5a3 3 0 0 0 3-3v-8.25Z" />
-                        <path fill-rule="evenodd" d="M3.75 19.5v-8.25a6 6 0 0 1 6-6h5.25a6 6 0 0 1 6 6v8.25a6 6 0 0 1-6 6h-5.25a6 6 0 0 1-6-6Z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-            </div>
+        <div class="flex justify-center mb-6 space-x-4">
+            <a href="{{ url_for('generate_playlist', mood=mood) }}" class="inline-block bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition-colors shadow-lg">
+                Refresh Songs ✨
+            </a>
+
+            <a href="{{ url_for('home') }}" class="inline-block bg-gray-600 text-white p-3 rounded-lg font-bold hover:bg-gray-700 transition-colors shadow-lg">
+                Go Back
+            </a>
         </div>
-        {% endfor %}
+
+        <div class="space-y-4 text-left">
+            {% for track in tracks %}
+            <div class="bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between shadow-md">
+                <div class="mb-2 sm:mb-0 sm:mr-4">
+                    <h2 class="text-lg font-semibold">{{ track.name }}</h2>
+                    <p class="text-sm text-gray-400">{{ track.artist }} - {{ track.album }}</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    {% if track.preview_url %}
+                    <audio controls class="w-full sm:w-auto">
+                        <source src="{{ track.preview_url }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    {% endif %}
+                    <a href="{{ track.url }}" target="_blank" rel="noopener noreferrer" class="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path d="M19.5 7.5a3 3 0 0 0-3-3h-7.5a3 3 0 0 0-3 3v8.25a3 3 0 0 0 3 3h7.5a3 3 0 0 0 3-3v-8.25Z" />
+                            <path fill-rule="evenodd" d="M3.75 19.5v-8.25a6 6 0 0 1 6-6h5.25a6 6 0 0 1 6 6v8.25a6 6 0 0 1-6 6h-5.25a6 6 0 0 1-6-6Z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-
-    <a href="{{ url_for('home') }}" class="mt-8 inline-block bg-gray-600 text-white p-3 rounded-lg font-bold hover:bg-gray-700 transition-colors">
-        Go Back
-    </a>
-</div>
-
 </body>
 </html>

@@ -68,42 +68,94 @@ def callback():
     return redirect(url_for('home'))
 
 
-@app.route('/generate_playlist', methods=['POST'])
+@app.route('/generate_playlist', methods=['GET', 'POST'])
 def generate_playlist():
     """
-    This route takes a user's mood from the form, maps it to Spotify audio features,
-    and generates a new playlist of recommended tracks.
+    This route now handles both POST requests from the form and GET requests
+    from the refresh button.
     """
     token_info = cache_handler.get_cached_token()
     
     if not sp_oauth.validate_token(token_info):
         return redirect(sp_oauth.get_authorize_url())
     
-    # Get mood from the form submission
-    user_mood = request.form.get('mood')
+    if request.method == 'POST':
+        user_mood = request.form.get('mood')
+    elif request.method == 'GET':
+        user_mood = request.args.get('mood')
 
-    # Mapping moods to Spotify audio features for recommendations
-    # Values are between 0.0 and 1.0
+    # Using ONLY valid Spotify genre seeds from the official list
     mood_mappings = {
-        'happy': {'target_valence': 0.9, 'target_danceability': 0.8},
-        'energetic': {'target_valence': 0.8, 'target_danceability': 0.9},
-        'chill': {'target_valence': 0.6, 'target_acousticness': 0.7},
-        'sad': {'target_valence': 0.2, 'target_energy': 0.3},
-        'calm': {'target_valence': 0.5, 'target_tempo': 90},
+        'happy': {
+            'seed_genres': ['pop', 'dance'],
+            'target_valence': 0.9,
+            'target_danceability': 0.8,
+            'target_energy': 0.7
+        },
+        'energetic': {
+            'seed_genres': ['rock', 'electronic'],
+            'target_valence': 0.8,
+            'target_energy': 0.9,
+            'target_danceability': 0.7
+        },
+        'chill': {
+            'seed_genres': ['chill', 'acoustic'],
+            'target_valence': 0.6,
+            'target_acousticness': 0.7,
+            'target_energy': 0.3
+        },
+        'sad': {
+            'seed_genres': ['indie', 'blues'],
+            'target_valence': 0.2,
+            'target_energy': 0.3,
+            'target_acousticness': 0.5
+        },
+        'calm': {
+            'seed_genres': ['ambient', 'jazz'],
+            'target_valence': 0.5,
+            'target_energy': 0.2,
+            'min_tempo': 60,
+            'max_tempo': 100
+        },
     }
 
-    # Get the audio feature parameters for the selected mood
-    audio_features = mood_mappings.get(user_mood, {})
-
-    if not audio_features:
+    if user_mood not in mood_mappings:
         return f"Sorry, '{user_mood}' is not a recognized mood."
     
+    # Make a deep copy to avoid modifying the original
+    import copy
+    audio_features = copy.deepcopy(mood_mappings[user_mood])
+    
     try:
-        # Get recommendations based on the mood features
-        # The limit is set to 20 songs, but you can change this
-        recommendations = sp.recommendations(limit=20, **audio_features)
+        # Extract and validate the seed genres
+        seed_genres_list = audio_features.pop('seed_genres')
         
-        # Prepare a list of tracks to display
+        print(f"Original mood mapping: {mood_mappings[user_mood]}")  # Debug print
+        print(f"Seed genres extracted: {seed_genres_list}")  # Debug print
+        print(f"Type of seed_genres_list: {type(seed_genres_list)}")  # Debug print
+        
+        # Ensure we have a proper list
+        if not isinstance(seed_genres_list, list):
+            print(f"ERROR: seed_genres is not a list! It's: {type(seed_genres_list)}")
+            return f"Internal error: seed_genres should be a list, got {type(seed_genres_list)}"
+        
+        # Join the genres properly
+        seed_genres_str = ','.join(seed_genres_list)
+        
+        print(f"Final seed_genres string: '{seed_genres_str}'")  # Debug print
+        print(f"Remaining audio features: {audio_features}")  # Debug print
+        print(f"Audio features: {audio_features}")  # Debug print
+        
+        # Make the API call with proper parameter structure
+        recommendations = sp.recommendations(
+            limit=20,
+            market='US',
+            seed_genres=seed_genres_str,
+            **audio_features
+        )
+        
+        print(f"API call successful! Got {len(recommendations['tracks'])} tracks")  # Debug print
+        
         tracks = []
         for track in recommendations['tracks']:
             tracks.append({
@@ -111,13 +163,41 @@ def generate_playlist():
                 'artist': track['artists'][0]['name'],
                 'album': track['album']['name'],
                 'preview_url': track['preview_url'],
-                'url': track['external_urls']['spotify']
+                'url': track['external_urls']['spotify'],
+                'mood': user_mood
             })
             
         return render_template('playlist.html', mood=user_mood, tracks=tracks)
 
     except Exception as e:
+        print(f"Full error details: {e}")  # Debug print
+        print(f"Error type: {type(e)}")  # Debug print
+        
+        # Let's try to get available genres for debugging
+        try:
+            available_genres = sp.recommendation_genre_seeds()
+            print(f"Available genres: {available_genres}")
+        except Exception as genre_error:
+            print(f"Could not fetch available genres: {genre_error}")
+        
         return f"An error occurred: {e}"
+
+
+@app.route('/available-genres')
+def available_genres():
+    """
+    Debug route to check available genre seeds
+    """
+    token_info = cache_handler.get_cached_token()
+    
+    if not sp_oauth.validate_token(token_info):
+        return redirect(sp_oauth.get_authorize_url())
+    
+    try:
+        genres = sp.recommendation_genre_seeds()
+        return jsonify(genres)
+    except Exception as e:
+        return f"Error fetching genres: {e}"
 
 
 @app.route('/logout')
