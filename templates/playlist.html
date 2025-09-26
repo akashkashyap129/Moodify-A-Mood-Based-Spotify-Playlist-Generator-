@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg,  #212121 0%, #121212 100%);
+            background: linear-gradient(135deg, #212121 0%, #121212 100%);
             min-height: 100vh;
             color: white;
             padding: 2rem 0;
@@ -59,13 +59,39 @@
         }
 
         .playlist-info {
-            background: rgba(63, 3, 3, 0.1);
+            background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 1.5rem;
             margin-bottom: 2rem;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px rgba(29, 185, 84, 0.3);
+        }
+
+        .playlist-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
 
         .controls {
@@ -95,7 +121,7 @@
         .btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgb(113, 255, 88);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
         }
 
         .btn-primary {
@@ -104,6 +130,14 @@
 
         .btn-primary:hover {
             background: linear-gradient(135deg, #1ed760, #1db954);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #ff8e53, #ff6b6b);
         }
 
         .btn:disabled {
@@ -171,6 +205,25 @@
             z-index: 2;
         }
 
+        .track-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .track-details {
+            flex: 1;
+        }
+
+        .track-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-left: 1rem;
+        }
+
         .track-name {
             font-size: 1.2rem;
             font-weight: 600;
@@ -179,23 +232,53 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            line-height: 1.3;
         }
 
         .track-artist {
             font-size: 1rem;
             opacity: 0.8;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
 
         .track-album {
             font-size: 0.9rem;
             opacity: 0.6;
+            margin-bottom: 0.3rem;
+        }
+
+        .track-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
             margin-bottom: 1rem;
+        }
+
+        .track-duration {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .track-popularity {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .explicit-tag {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
         }
 
         .track-controls {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
         }
 
@@ -216,6 +299,52 @@
 
         .spotify-btn:hover {
             background: #1ed760;
+            transform: translateY(-1px);
+        }
+
+        .track-select {
+            width: 18px;
+            height: 18px;
+            accent-color: #4ecdc4;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            display: none;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
 
@@ -240,10 +369,31 @@
             .track-card {
                 padding: 1rem;
             }
+
+            .track-header {
+                flex-direction: column;
+            }
+
+            .track-image {
+                margin: 1rem auto 0;
+            }
+
+            .playlist-stats {
+                gap: 1rem;
+            }
+
+            .logout-btn {
+                top: 10px;
+                right: 10px;
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
+    <a href="/logout" class="logout-btn">Logout</a>
+    
     <div class="container">
         <div class="header">
             <h1 class="logo">🎵 Moodify</h1>
@@ -263,8 +413,30 @@
             
             <div class="playlist-info">
                 <p id="track-count">{{ tracks|length }} tracks curated based on your {{ mood }} mood</p>
+                <div class="playlist-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="total-duration">
+                            {% set total_seconds = tracks | sum(attribute='duration_ms', start=0) // 1000 %}
+                            {{ (total_seconds // 60) }}:{{ '%02d' | format(total_seconds % 60) }}
+                        </span>
+                        <span class="stat-label">Total Duration</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">
+                            {{ (tracks | sum(attribute='popularity', start=0) / tracks|length) | round }}%
+                        </span>
+                        <span class="stat-label">Avg Popularity</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="selected-count">0</span>
+                        <span class="stat-label">Selected</span>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div id="success-message" class="success-message"></div>
+        <div id="error-message" class="error-message"></div>
 
         <div class="controls">
             <a href="/" class="btn">
@@ -274,17 +446,47 @@
                 <span id="refresh-text">🔄 Refresh Songs</span>
                 <div id="refresh-spinner" class="loading-spinner"></div>
             </button>
+            <button id="create-playlist-btn" onclick="createSpotifyPlaylist()" class="btn btn-secondary">
+                <span id="create-text">💾 Save to Spotify</span>
+                <div id="create-spinner" class="loading-spinner"></div>
+            </button>
+            <button id="select-all-btn" onclick="toggleSelectAll()" class="btn">
+                ✓ Select All
+            </button>
         </div>
 
         <div id="playlist-grid" class="playlist-grid">
             {% for track in tracks %}
-            <div class="track-card" onclick="openSpotify('{{ track.url }}')">
+            <div class="track-card" data-track-id="{{ track.id }}">
                 <div class="track-info">
-                    <div class="track-name">{{ track.name }}</div>
-                    <div class="track-artist">{{ track.artist }}</div>
-                    <div class="track-album">{{ track.album }}</div>
+                    <div class="track-header">
+                        <div class="track-details">
+                            <div class="track-name">{{ track.name }}</div>
+                            <div class="track-artist">{{ track.artist }}</div>
+                            <div class="track-album">{{ track.album }}</div>
+                            
+                            <div class="track-meta">
+                                <div class="track-duration">
+                                    🕐 {{ track.duration }}
+                                </div>
+                                <div class="track-popularity">
+                                    📊 {{ track.popularity }}%
+                                </div>
+                                {% if track.explicit %}
+                                <span class="explicit-tag">E</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if track.album_image %}
+                        <img src="{{ track.album_image }}" alt="{{ track.album }}" class="track-image">
+                        {% endif %}
+                    </div>
                     
                     <div class="track-controls">
+                        <label>
+                            <input type="checkbox" class="track-select" onchange="updateSelection()">
+                            Select
+                        </label>
                         <a href="{{ track.url }}" target="_blank" class="spotify-btn" onclick="event.stopPropagation()">
                             🎵 Open in Spotify
                         </a>
@@ -297,9 +499,125 @@
 
     <script>
         const currentMood = "{{ mood }}";
+        let allSelected = false;
 
         function openSpotify(url) {
             window.open(url, '_blank');
+        }
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.track-select');
+            const selectedCount = document.querySelectorAll('.track-select:checked').length;
+            const selectedCountElement = document.getElementById('selected-count');
+            const createPlaylistBtn = document.getElementById('create-playlist-btn');
+            const selectAllBtn = document.getElementById('select-all-btn');
+            
+            selectedCountElement.textContent = selectedCount;
+            
+            // Enable/disable create playlist button based on selection
+            createPlaylistBtn.disabled = selectedCount === 0;
+            
+            // Update select all button text
+            const allChecked = selectedCount === checkboxes.length;
+            selectAllBtn.innerHTML = allChecked ? '✗ Deselect All' : '✓ Select All';
+            allSelected = allChecked;
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.track-select');
+            const newState = !allSelected;
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = newState;
+            });
+            
+            updateSelection();
+        }
+
+        function getSelectedTrackIds() {
+            const selectedTracks = [];
+            const trackCards = document.querySelectorAll('.track-card');
+            
+            trackCards.forEach(card => {
+                const checkbox = card.querySelector('.track-select');
+                if (checkbox && checkbox.checked) {
+                    selectedTracks.push(card.dataset.trackId);
+                }
+            });
+            
+            return selectedTracks;
+        }
+
+        function showMessage(message, isSuccess = true) {
+            const successElement = document.getElementById('success-message');
+            const errorElement = document.getElementById('error-message');
+            
+            if (isSuccess) {
+                successElement.textContent = message;
+                successElement.style.display = 'block';
+                errorElement.style.display = 'none';
+                
+                setTimeout(() => {
+                    successElement.style.display = 'none';
+                }, 5000);
+            } else {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+                
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function createSpotifyPlaylist() {
+            const selectedTrackIds = getSelectedTrackIds();
+            
+            if (selectedTrackIds.length === 0) {
+                showMessage('Please select at least one track to create a playlist.', false);
+                return;
+            }
+
+            const createBtn = document.getElementById('create-playlist-btn');
+            const createText = document.getElementById('create-text');
+            const createSpinner = document.getElementById('create-spinner');
+
+            // Disable button and show loading
+            createBtn.disabled = true;
+            createText.style.display = 'none';
+            createSpinner.style.display = 'inline-block';
+
+            fetch('/create_spotify_playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    mood: currentMood,
+                    track_ids: selectedTrackIds
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`Successfully created "${data.playlist_name}" in your Spotify library!`, true);
+                    // Open the playlist in Spotify
+                    window.open(data.playlist_url, '_blank');
+                } else {
+                    throw new Error(data.error || 'Failed to create playlist');
+                }
+            })
+            .catch(error => {
+                console.error('Error creating playlist:', error);
+                showMessage('Failed to create Spotify playlist. Please try again.', false);
+            })
+            .finally(() => {
+                // Re-enable button and hide loading
+                createBtn.disabled = false;
+                createText.style.display = 'inline';
+                createSpinner.style.display = 'none';
+            });
         }
 
         function refreshPlaylist() {
@@ -339,6 +657,9 @@
                     playlistGrid.innerHTML = newGrid.innerHTML;
                     trackCount.textContent = newTrackCount.textContent;
                     
+                    // Reset selection counter
+                    updateSelection();
+                    
                     // Add fade-in animation to new tracks
                     const newCards = playlistGrid.querySelectorAll('.track-card');
                     newCards.forEach((card, index) => {
@@ -350,13 +671,15 @@
                             card.style.transform = 'translateY(0)';
                         }, index * 100);
                     });
+                    
+                    showMessage(`Refreshed with ${newCards.length} new ${currentMood} tracks!`, true);
                 } else {
                     throw new Error('Could not parse new tracks');
                 }
             })
             .catch(error => {
                 console.error('Error refreshing playlist:', error);
-                alert('Failed to refresh playlist. Please try again.');
+                showMessage('Failed to refresh playlist. Please try again.', false);
             })
             .finally(() => {
                 // Re-enable button and hide loading state
@@ -365,6 +688,27 @@
                 refreshSpinner.style.display = 'none';
             });
         }
+
+        // Initialize selection counter on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSelection();
+        });
+
+        // Add click handlers to track cards for better UX
+        document.querySelectorAll('.track-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't toggle if clicking on checkbox or Spotify button
+                if (e.target.type === 'checkbox' || e.target.closest('.spotify-btn')) {
+                    return;
+                }
+                
+                const checkbox = this.querySelector('.track-select');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    updateSelection();
+                }
+            });
+        });
     </script>
 </body>
 </html>

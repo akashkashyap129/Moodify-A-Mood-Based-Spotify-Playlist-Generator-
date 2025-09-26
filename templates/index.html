@@ -19,6 +19,7 @@
             justify-content: center;
             align-items: center;
             color: white;
+            padding: 2rem;
         }
 
         .container {
@@ -27,9 +28,9 @@
             border-radius: 20px;
             padding: 3rem 2rem;
             text-align: center;
-            box-shadow: 0 8px 32px rgba(29, 185, 84);
+            box-shadow: 0 8px 32px rgba(29, 185, 84, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
         }
 
@@ -45,8 +46,12 @@
         }
 
         @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .subtitle {
@@ -59,8 +64,72 @@
         .mood-form {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 2rem;
             align-items: center;
+        }
+
+        .input-section {
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #4ecdc4;
+            text-align: center;
+        }
+
+        .text-input-container {
+            margin-bottom: 1rem;
+        }
+
+        .mood-text-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .mood-text-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+
+        .mood-text-input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            opacity: 0.6;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .divider span {
+            padding: 0 1rem;
+            font-size: 0.9rem;
         }
 
         .mood-selector {
@@ -68,7 +137,6 @@
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 1rem;
             width: 100%;
-            margin-bottom: 1rem;
             justify-items: center;
         }
 
@@ -126,23 +194,30 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-top: 1rem;
         }
 
         .generate-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, #1db95458 0%, #137f3943 100%);
+            background: linear-gradient(135deg, #1ed760 0%, #1db954 100%);
         }
 
         .generate-btn:active {
             transform: translateY(0);
         }
 
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .logout-btn {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(0, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2);
             border: none;
             border-radius: 25px;
             padding: 0.5rem 1rem;
@@ -164,19 +239,47 @@
             line-height: 1.6;
         }
 
+        .hint {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 2rem 1.5rem;
             }
-            
+
             .logo {
                 font-size: 2.5rem;
             }
-            
+
             .mood-selector {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .mood-card {
                 padding: 1rem 0.5rem;
                 font-size: 1rem;
@@ -190,56 +293,198 @@
     <div class="container">
         <h1 class="logo">🎵 Moodify</h1>
         <p class="subtitle">Discover music that matches your mood</p>
-        
-        <form action="/generate_playlist" method="post" class="mood-form">
-            <div class="mood-selector">
-                <label class="mood-option">
-                    <input type="radio" name="mood" value="happy" required>
-                    <div class="mood-card">
-                        <span class="mood-emoji">😊</span>
-                        Happy
-                    </div>
-                </label>
-                
-                <label class="mood-option">
-                    <input type="radio" name="mood" value="energetic" required>
-                    <div class="mood-card">
-                        <span class="mood-emoji">⚡</span>
-                        Energetic
-                    </div>
-                </label>
-                
-                <label class="mood-option">
-                    <input type="radio" name="mood" value="chill" required>
-                    <div class="mood-card">
-                        <span class="mood-emoji">😌</span>
-                        Chill
-                    </div>
-                </label>
-                
-                <label class="mood-option">
-                    <input type="radio" name="mood" value="sad" required>
-                    <div class="mood-card">
-                        <span class="mood-emoji">😢</span>
-                        Sad
-                    </div>
-                </label>
-                
-                <label class="mood-option">
-                    <input type="radio" name="mood" value="calm" required>
-                    <div class="mood-card">
-                        <span class="mood-emoji">🧘</span>
-                        Calm
-                    </div>
-                </label>
+
+        <form action="/generate_playlist" method="post" class="mood-form" id="moodForm">
+            <!-- Text Description Section -->
+            <div class="input-section">
+                <h3 class="section-title">✍️ Describe Your Mood</h3>
+                <div class="text-input-container">
+                    <textarea 
+                        name="mood_text" 
+                        class="mood-text-input" 
+                        placeholder="Tell us how you're feeling... (e.g., 'I'm feeling really happy and energetic today!' or 'I'm sad and need some comforting music')" 
+                        rows="3" 
+                        id="moodText"
+                    ></textarea>
+                    <div class="hint">Our AI will analyze your text and pick the perfect mood!</div>
+                </div>
             </div>
-            
-            <button type="submit" class="generate-btn">Generate Playlist</button>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <!-- Quick Mood Selection -->
+            <div class="input-section">
+                <h3 class="section-title">🎭 Quick Mood Selection</h3>
+                <div class="mood-selector">
+                    <label class="mood-option">
+                        <input type="radio" name="mood" value="happy" id="happy">
+                        <div class="mood-card">
+                            <span class="mood-emoji">😊</span>
+                            Happy
+                        </div>
+                    </label>
+
+                    <label class="mood-option">
+                        <input type="radio" name="mood" value="energetic" id="energetic">
+                        <div class="mood-card">
+                            <span class="mood-emoji">⚡</span>
+                            Energetic
+                        </div>
+                    </label>
+
+                    <label class="mood-option">
+                        <input type="radio" name="mood" value="chill" id="chill">
+                        <div class="mood-card">
+                            <span class="mood-emoji">😌</span>
+                            Chill
+                        </div>
+                    </label>
+
+                    <label class="mood-option">
+                        <input type="radio" name="mood" value="sad" id="sad">
+                        <div class="mood-card">
+                            <span class="mood-emoji">😢</span>
+                            Sad
+                        </div>
+                    </label>
+
+                    <label class="mood-option">
+                        <input type="radio" name="mood" value="calm" id="calm">
+                        <div class="mood-card">
+                            <span class="mood-emoji">🧘</span>
+                            Calm
+                        </div>
+                    </label>
+                </div>
+                <div class="hint">Select a mood that matches how you're feeling right now</div>
+            </div>
+
+            <button type="submit" class="generate-btn" id="generateBtn">
+                🎵 Generate Playlist
+            </button>
+
+            <!-- Loading indicator -->
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Curating your perfect playlist...</p>
+            </div>
         </form>
-        
-        <p class="description">
-            Select your current mood and we'll curate a personalized playlist just for you using your Spotify listening history and preferences.
-        </p>
+
+        <div class="description">
+            <p>Moodify uses advanced sentiment analysis and your Spotify listening history to create personalized playlists that perfectly match your current mood. Simply describe how you're feeling or select a mood, and we'll curate the perfect soundtrack for your moment.</p>
+        </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('moodForm');
+            const moodText = document.getElementById('moodText');
+            const moodRadios = document.querySelectorAll('input[name="mood"]');
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            // Clear radio selection when typing in text area
+            moodText.addEventListener('input', function() {
+                if (this.value.trim().length > 0) {
+                    moodRadios.forEach(radio => radio.checked = false);
+                }
+            });
+
+            // Clear text area when selecting a mood radio button
+            moodRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        moodText.value = '';
+                    }
+                });
+            });
+
+            // Form validation and submission
+            form.addEventListener('submit', function(e) {
+                const textValue = moodText.value.trim();
+                const selectedMood = document.querySelector('input[name="mood"]:checked');
+
+                if (!textValue && !selectedMood) {
+                    e.preventDefault();
+                    alert('Please either describe your mood or select a mood option!');
+                    return;
+                }
+
+                // Show loading indicator
+                generateBtn.style.display = 'none';
+                loadingIndicator.style.display = 'flex';
+                generateBtn.disabled = true;
+            });
+
+            // Add some interactive effects
+            const moodCards = document.querySelectorAll('.mood-card');
+            moodCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const emoji = this.querySelector('.mood-emoji');
+                    emoji.style.transform = 'scale(1.2)';
+                    emoji.style.transition = 'transform 0.3s ease';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    const emoji = this.querySelector('.mood-emoji');
+                    emoji.style.transform = 'scale(1)';
+                });
+            });
+
+            // Add keyboard support
+            document.addEventListener('keydown', function(e) {
+                if (e.key >= '1' && e.key <= '5') {
+                    const index = parseInt(e.key) - 1;
+                    const radios = document.querySelectorAll('input[name="mood"]');
+                    if (radios[index]) {
+                        radios[index].checked = true;
+                        moodText.value = '';
+                    }
+                }
+            });
+
+            // Auto-resize textarea
+            moodText.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.max(60, this.scrollHeight) + 'px';
+            });
+        });
+
+        // Add some sparkle effects on mood selection
+        function addSparkleEffect(element) {
+            for (let i = 0; i < 5; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.innerHTML = '✨';
+                sparkle.style.position = 'absolute';
+                sparkle.style.left = Math.random() * element.offsetWidth + 'px';
+                sparkle.style.top = Math.random() * element.offsetHeight + 'px';
+                sparkle.style.pointerEvents = 'none';
+                sparkle.style.fontSize = '12px';
+                sparkle.style.animation = 'sparkle 1s ease-out forwards';
+                element.appendChild(sparkle);
+
+                setTimeout(() => sparkle.remove(), 1000);
+            }
+        }
+
+        // Add sparkle animation CSS
+        const sparkleStyle = document.createElement('style');
+        sparkleStyle.textContent = `
+            @keyframes sparkle {
+                0% { opacity: 1; transform: translateY(0) scale(1); }
+                100% { opacity: 0; transform: translateY(-20px) scale(0.5); }
+            }
+        `;
+        document.head.appendChild(sparkleStyle);
+
+        // Add sparkle effect on mood selection
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', function() {
+                addSparkleEffect(this);
+            });
+        });
+    </script>
 </body>
 </html>
