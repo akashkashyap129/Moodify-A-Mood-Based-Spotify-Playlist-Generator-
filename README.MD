@@ -38,7 +38,7 @@ Moodify is an intelligent web application that creates personalized Spotify play
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/moodify.git
+git clone https://github.com/akashkashyap129/Moodify-A-Mood-Based-Spotify-Playlist-Generator-.git
 cd moodify
 ```
 
